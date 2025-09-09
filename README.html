@@ -353,181 +353,235 @@ display: none;
 
 
 <div id="running-tracer-and-immcantation-on-scrna-seq-data" class="section level1">
-<h1>Running TraCeR and immcantation on scRNA-seq data</h1>
-<div id="about" class="section level3">
-<h3>About</h3>
-<p>Repository describes how to run the annotation pipeline TraCeR,
-followed by immcantation (specifically ChangeO) to reconstruct TCR
-sequences from scRNA sequencing data, and perform the downstream
-annotations on the data using IgBLAST, as required to extract CDR3B
-amino acid sequences for further analysis such as metaclonotyping.
-Repository was created to run on the UCL Myriad HPC cluster, using array
-jobs on the SGE system.</p>
-<p><strong>Tracer:</strong></p>
-<ul>
-<li>Source instructions: <a href="https://github.com/Teichlab/tracer/tree/master" class="uri">https://github.com/Teichlab/tracer/tree/master</a></li>
-<li>Citation: <a href="https://www.nature.com/articles/nmeth.3800" class="uri">https://www.nature.com/articles/nmeth.3800</a></li>
-</ul>
-<p><strong>Immcantation:</strong></p>
-<ul>
-<li>Source instructions: <a href="https://immcantation.readthedocs.io/en/stable/" class="uri">https://immcantation.readthedocs.io/en/stable/</a></li>
-<li>Citation (ChangeO): <a href="https://pubmed.ncbi.nlm.nih.gov/26069265/" class="uri">https://pubmed.ncbi.nlm.nih.gov/26069265/</a></li>
-</ul>
+<h1>Running TraCeR and Immcantation on scRNA-seq Data</h1>
+<div id="about" class="section level2">
+<h2>About</h2>
+<p>This repository provides instructions for running the TCR annotation
+pipeline using <strong><a href="https://github.com/Teichlab/tracer">TraCeR</a></strong> followed
+by <strong><a href="https://immcantation.readthedocs.io/en/stable/">Immcantation</a></strong>
+(specifically ChangeO).</p>
+<p>The workflow reconstructs TCR sequences from single-cell RNA
+sequencing (scRNA-seq) data and performs downstream annotations using
+<strong>IgBLAST</strong>, enabling extraction of <strong>CDR3B amino
+acid sequences</strong> for further analysis such as
+metaclonotyping.</p>
+<p>The repository is configured for use on the <strong>UCL Myriad HPC
+cluster</strong> with <strong>SGE array jobs</strong>.</p>
+<hr />
 </div>
-<div id="requirements" class="section level3">
-<h3>Requirements:</h3>
+<div id="references" class="section level2">
+<h2>References</h2>
 <ul>
-<li>TraCeR docker image (<a href="https://hub.docker.com/r/teichlab/tracer/" class="uri">https://hub.docker.com/r/teichlab/tracer/</a>)</li>
-<li>Immcantation docker image (<a href="https://hub.docker.com/r/immcantation/suite" class="uri">https://hub.docker.com/r/immcantation/suite</a>)
+<li><strong>TraCeR</strong>
 <ul>
-<li><p>From <a href="https://immcantation.readthedocs.io/en/stable/docker/intro.html" class="uri">https://immcantation.readthedocs.io/en/stable/docker/intro.html</a></p>
-<pre><code># Pull release version 4.6.0
+<li>Source: <a href="https://github.com/Teichlab/tracer/tree/master" class="uri">https://github.com/Teichlab/tracer/tree/master</a><br />
+</li>
+<li>Citation: <a href="https://www.nature.com/articles/nmeth.3800">Nature Methods
+2016</a></li>
+</ul></li>
+<li><strong>Immcantation (ChangeO)</strong>
+<ul>
+<li>Source: <a href="https://immcantation.readthedocs.io/en/stable/" class="uri">https://immcantation.readthedocs.io/en/stable/</a><br />
+</li>
+<li>Citation: <a href="https://pubmed.ncbi.nlm.nih.gov/26069265/">Gupta
+et al. 2015</a></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="requirements" class="section level2">
+<h2>Requirements</h2>
+<ul>
+<li><strong>TraCeR Docker image</strong>: <a href="https://hub.docker.com/r/teichlab/tracer/" class="uri">https://hub.docker.com/r/teichlab/tracer/</a><br />
+</li>
+<li><strong>Immcantation Docker image</strong>: <a href="https://hub.docker.com/r/immcantation/suite" class="uri">https://hub.docker.com/r/immcantation/suite</a>
+<ul>
+<li><p>Example (Singularity build):</p>
+<pre class="bash"><code># Pull release version 4.6.0
 IMAGE=&quot;immcantation_suite-4.6.0.sif&quot;
 singularity build $IMAGE docker://immcantation/suite:4.6.0</code></pre></li>
 </ul></li>
-<li>Linux operating system (e.g., UCL Myriad)</li>
-<li>python3 (3.9.10)
+<li><strong>Linux operating system</strong> (tested on UCL Myriad)<br />
+</li>
+<li><strong>Python 3.9.10</strong> with:
 <ul>
-<li>pandas (1.4)</li>
-<li>numpy (1.21.5)</li>
+<li>pandas 1.4<br />
+</li>
+<li>numpy 1.21.5</li>
 </ul></li>
 </ul>
+<hr />
 </div>
-<div id="repository-setup" class="section level3">
-<h3>Repository setup:</h3>
-<p>Run <code>setup_script.sh</code> to create and move the repo files
-into the locations required for the script. Before running the script,
-the following directories should be in place:</p>
-<div id="directories" class="section level4">
-<h4>Directories:</h4>
+<div id="repository-setup" class="section level2">
+<h2>Repository Setup</h2>
+<p>Run <code>setup_script.sh</code> to create and move the repository
+files into the required locations.<br />
+Before running, ensure the following directories exist:</p>
+<div id="directory-structure" class="section level3">
+<h3>Directory structure</h3>
 <ul>
-<li>fastqs: directory containing the fastqs for processing
+<li><code>fastqs/</code> — contains raw FASTQ files for processing.
 <ul>
-<li>data should be named like so, to fit with the script layout (unless
-the regexes are altered in tracer-array.sh):
+<li><p>Naming convention (unless regexes in <code>tracer-array.sh</code>
+are modified):</p>
+<pre><code>&lt;DONOR_ID&gt;_&lt;PLATE&gt;_&lt;WELL&gt;_&lt;REMAINING_IDENTIFIERS&gt;.fastq.gz</code></pre>
 <ul>
-<li><code>&lt;DONOR_ID&gt;_&lt;PLATE&gt;_&lt;WELL&gt;_&lt;REMAINING_IDENTIFIERS&gt;.fastq.gz</code></li>
-<li><code>CELL_NAME</code> will be set from the above value, taking
-<code>&lt;DONOR_ID&gt;_&lt;PLATE&gt;_&lt;WELL&gt;</code> for use in the
-script.</li>
+<li><code>CELL_NAME</code> is derived as
+<code>&lt;DONOR_ID&gt;_&lt;PLATE&gt;_&lt;WELL&gt;</code>.</li>
 </ul></li>
 </ul></li>
-<li>tracer_out: empty directory (initially) to hold the output.</li>
-<li>jobscripts: empty directory (initially) to hold the array jobscript
-outputs (needed for debugging/checking progress)</li>
-<li>logs: empty directory (initially) to hold the log files (needed for
-debugging/checking progress)</li>
+<li><code>tracer_out/</code> — initially empty, stores TraCeR
+outputs.<br />
+</li>
+<li><code>jobscripts/</code> — initially empty, stores array job scripts
+(useful for debugging).<br />
+</li>
+<li><code>logs/</code> — initially empty, stores log files.</li>
 </ul>
 </div>
-<div id="files-scripts" class="section level4">
-<h4>Files &amp; scripts:</h4>
+<div id="provided-scripts-and-files" class="section level3">
+<h3>Provided scripts and files</h3>
 <ul>
-<li><p><strong>array-params-complete.txt</strong>: text file containing
-3 fields (tab separated) describing the files to process.</p>
-<ul>
-<li>Field 1: row index (useful for logging how many threads to request
-for the job, but not read by any scripts).</li>
-<li>Field 2: Read 1 file name</li>
-<li>Field 3: Read 2 file name</li>
-</ul></li>
-<li><p><strong>tracer-array.sh</strong>: Script set up to run the tracer
-part of the pipeline using an SGE array job. Please see SGE
-documentation for editing the job size requests (for example) if
-unclear.</p></li>
-<li><p><strong>changeo_igblast.sh</strong>: Script to run the changeo
-portion of immcantation on the output fasta files from tracer</p></li>
-<li><p><strong>findcompletedjobs.sh</strong>: Searches the job history
-from a set number of hours previous to identify completed jobs with a
-specific exit code. Useful for finding 137 errors, so that they can be
-resubmitted with more memory</p></li>
-<li><p><strong>geterror137jobs.sh</strong>: Loop through
-findcompletedjobs.sh output and assemble a new array-params-complete
-file for resubmission (containing only the OOM failed files)</p></li>
-<li><p><strong>processDB.py</strong>: Annotates and summarises
-tracer_out results files. Version of for the summarised clonotypes file
-from tracer.</p>
-<ul>
-<li>Will need to change the default path to “tracer output folder list”
-(<code>-p</code> or <code>--path</code>) command line argument.</li>
-</ul></li>
-<li><p><strong>tracerconfig.conf:</strong> Configuration file for
-tracer, set up as I had it. Base tracer.conf file does not have all file
-paths enabled. Either use this new one or set up the original.</p></li>
-<li><p><strong>TRD.fasta:</strong> IMGT germline D gene annotations and
-nucleotide sequences</p></li>
-<li><p><strong>TRJ.fasta:</strong> IMGT germline J gene annotations and
-nucleotide sequences</p></li>
-<li><p><strong>TRV.fasta:</strong> IMGT germline V gene annotations and
-nucleotide sequences</p></li>
-</ul>
-</div>
-</div>
-<div id="instructions" class="section level3">
-<h3>Instructions:</h3>
+<li><strong>array-params-complete.txt</strong><br />
+Tab-delimited file with 3 fields describing files to process:
 <ol style="list-style-type: decimal">
-<li><p>Download docker containers and set up as instructed in the source
-documentation.</p></li>
-<li><p>Create/modify the array-params-complete.txt script (ensure this
-file name is reflected in tracer-array.sh)</p></li>
-</ol>
+<li>Row index (for logging, not read by scripts)<br />
+</li>
+<li>Read 1 file name<br />
+</li>
+<li>Read 2 file name</li>
+</ol></li>
+<li><strong>tracer-array.sh</strong> — Runs TraCeR using an SGE array
+job.<br />
+</li>
+<li><strong>changeo_igblast.sh</strong> — Runs ChangeO on TraCeR FASTA
+outputs.<br />
+</li>
+<li><strong>findcompletedjobs.sh</strong> — Identifies completed jobs
+with specific exit codes (useful for finding OOM errors).<br />
+</li>
+<li><strong>geterror137jobs.sh</strong> — Rebuilds a new
+<code>array-params-complete.txt</code> file containing only OOM-failed
+jobs for resubmission.<br />
+</li>
+<li><strong>processDB.py</strong> — Annotates and summarizes
+<code>tracer_out</code> results.
 <ul>
-<li>ensure files are all in the fastq folder</li>
+<li>Requires setting the default path with <code>-p/--path</code>.<br />
+</li>
+</ul></li>
+<li><strong>tracerconfig.conf</strong> — Example configuration file for
+TraCeR with file paths enabled.<br />
+</li>
+<li><strong>TRD.fasta</strong>, <strong>TRJ.fasta</strong>,
+<strong>TRV.fasta</strong> — IMGT germline D, J, and V gene
+annotations.</li>
 </ul>
-<ol start="3" style="list-style-type: decimal">
-<li>Submit the job to the scheduler using
-<code>qsub -t &lt;NUMBER_OF_THREADS_REQUIRED_IF_CHANGING_FROM_DEFAULT&gt; -N &lt;RUN_NAME&gt; tracer-array.sh</code></li>
-</ol>
+<hr />
+</div>
+</div>
+<div id="workflow-instructions" class="section level2">
+<h2>Workflow Instructions</h2>
+<div id="prepare-containers" class="section level3">
+<h3>1. Prepare containers</h3>
+<p>Download Docker/Singularity containers as described in the official
+TraCeR and Immcantation documentation.</p>
+<hr />
+</div>
+<div id="set-up-job-parameters" class="section level3">
+<h3>2. Set up job parameters</h3>
+<p>Create/modify <code>array-params-complete.txt</code>.<br />
+Ensure all FASTQ files are in the <code>fastqs/</code> folder.</p>
+<hr />
+</div>
+<div id="run-tracer" class="section level3">
+<h3>3. Run TraCeR</h3>
+<p>Submit the array job with:</p>
+<pre class="bash"><code>qsub -t &lt;ARRAY_RANGE&gt; -N &lt;RUN_NAME&gt; tracer-array.sh</code></pre>
 <ul>
-<li>Results will be saved in the folder ‘tracer_out’</li>
-<li>Each cell will be granted its own folder, regardless of if the job
-completes (i.e., if a TCR is identified).
+<li>Output: results saved in <code>tracer_out/</code><br />
+</li>
+<li>Each cell receives its own folder, even if no TCR is
+identified.<br />
+</li>
+<li>Relevant output folders for downstream analysis:
 <ul>
-<li>See tracer documentation for full explanation of the results,
-however only the <strong>filtered_TCR_seqs</strong> and
-<strong>expression_quantification</strong> folders are needed for
-running <strong>immcantation</strong> and <strong>processDB.py</strong>
-downstream.</li>
+<li><code>filtered_TCR_seqs/</code><br />
+</li>
+<li><code>expression_quantification/</code></li>
 </ul></li>
 </ul>
-<ol start="4" style="list-style-type: decimal">
-<li>Run immcantation using <code>./changeo_igblast.sh</code>.</li>
-</ol>
+<hr />
+</div>
+<div id="run-immcantation-changeo" class="section level3">
+<h3>4. Run Immcantation (ChangeO)</h3>
+<p>Execute:</p>
+<pre class="bash"><code>./changeo_igblast.sh</code></pre>
 <ul>
-<li>Files are very small, so finish very quickly. Therefore I either
-used the login node (not advised, HPC staff may get mad) or used a low
-memory requirement interactive job.</li>
-<li>Script queries the
-<code>&lt;CELL_NAME&gt;/filtered_TCR_seqs/&lt;CELL_NAME&gt;_TCRseqs.fa</code>
-file, and inputs it to changeo. It creates a new folder within
-‘filtered_TCR_seqs’ folder called ‘igblast’.
+<li>Typically very fast due to small input files.<br />
+</li>
+<li>Queries:
+<code>&lt;CELL_NAME&gt;/filtered_TCR_seqs/&lt;CELL_NAME&gt;_TCRseqs.fa</code><br />
+</li>
+<li>Creates a new <code>igblast/</code> subfolder within each cell’s
+<code>filtered_TCR_seqs/</code>.</li>
+</ul>
+<p><strong>Outputs:</strong> -
+<code>&lt;CELL_NAME&gt;_igblast.fmt7</code> — raw IgBLAST output (used
+by ChangeO).<br />
+- <code>&lt;CELL_NAME&gt;_igblast_db-pass.tsv</code> — database built
+from IgBLAST (≤2 entries per chain).</p>
+<hr />
+</div>
+<div id="process-results" class="section level3">
+<h3>5. Process results</h3>
+<p>Run:</p>
+<pre class="bash"><code>processDB.py</code></pre>
 <ul>
-<li>Output files are:
+<li><strong>Input:</strong>
+<code>&lt;CELL_NAME&gt;_igblast_db-pass.tsv</code><br />
+</li>
+<li><strong>Outputs:</strong>
 <ul>
-<li><code>&lt;CELL_NAME&gt;_igblast.fmt7</code>: Direct IgBLAST output,
-not very interpretable, but needed for MakeDb.py (ChangeO).</li>
-<li><code>&lt;CELL_NAME&gt;_igblast_db-pass.tsv</code>: Database
-constructed from above .fmt7 file. At most 2 entries per chain.</li>
+<li><code>&lt;CELL_NAME&gt;_igblast_processed.tsv</code> — slimmed file
+with donor info and TPM per sequence.
+<ul>
+<li>Manual handling required for cases with 2 productive TCRs (assigning
+a dominant sequence using TPM column during your downstream data
+analysis pipeline).</li>
+</ul></li>
+<li>Per-cell summary file (similar to <code>tracer summarise</code>),
+containing:
+<ul>
+<li>Dominant productive/unproductive TCR identifiers<br />
+</li>
+<li>CDR3A/B amino acid sequences</li>
 </ul></li>
 </ul></li>
 </ul>
-<ol start="5" style="list-style-type: decimal">
-<li>Run <code>processDB.py</code>.</li>
-</ol>
+<p>These summary files can be concatenated with <code>pandas</code> or
+<code>bash</code> for downstream analysis.</p>
+<hr />
+</div>
+</div>
+<div id="troubleshooting" class="section level2">
+<h2>Troubleshooting</h2>
 <ul>
-<li>Processes <code>&lt;CELL_NAME&gt;_igblast_db-pass.tsv</code> into a
-<code>&lt;CELL_NAME&gt;_igblast_processed.tsv</code>slimmed file fewer
-columns, and adding in the donor information and tpm per sequence (if a
-case of 2 productive TCRs, can be used for assigning a dominant
-sequence).</li>
-<li>Also creates a summary file (similar to
-<code>tracer summarise</code>), containing dominant
-productive/unproductive TCR identifiers. Also contains CDR3A/B AA
-sequence, rather than just tracer id (genes + CDR3 nucleotide motif).
+<li><strong>Out-of-memory (OOM) errors</strong>
 <ul>
-<li>Outputs a summary file per cell, therefore join together via pandas
-or bash.</li>
+<li>Use <code>findcompletedjobs.sh</code> to identify failed jobs (exit
+code 137).<br />
+</li>
+<li>Create a new array-params-complete file using
+<code>geterror137jobs.sh</code>.</li>
+</ul></li>
+<li><strong>Running ChangeO on login node</strong>
+<ul>
+<li>Works due to small input size, but avoid on shared systems — request
+a lightweight interactive job instead.</li>
 </ul></li>
 </ul>
+<hr />
 </div>
 </div>
 

@@ -7,7 +7,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-p', '--path', help = 'path to tracer output folder list', default = '/home/ucbtpt0/Scratch/HBV-sc-rnaseq/tracer_out')
+parser.add_argument('-p', '--path', help = 'path to tracer output folder list', default = '/home/<USER_NAME>/Scratch/HBV-sc-rnaseq/tracer_out')
 parser.add_argument('-cn', '--cellname', help = 'name of the cell to process')
 
 args = parser.parse_args()
